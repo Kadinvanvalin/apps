@@ -1,0 +1,8 @@
+---
+id: 2ndbrain
+name: 2ndbrain
+summary: display markdown notes
+desc: Hits an api to keep you on track!
+author: kadinvanvalin
+fileName: 2ndbrain.star
+packageName: 2ndbrain
