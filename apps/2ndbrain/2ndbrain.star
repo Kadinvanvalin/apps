@@ -17,7 +17,6 @@ dataa = {
     "next": "Tell sean about the currency bug sometime in the near furture hello",
     "last_updated": "2025-10-18T20:52:16.723Z",
     "age_hours": 3.01151222222222
-
 }
 blue="#3399FF"
 red="#FF0000"
@@ -25,8 +24,8 @@ green="#fff"
 done_color="#00FF5A"
 remaining_color="#404040"
 
-#DEFAULT_TASKS_URL="http://focus-api.k8s"
-DEFAULT_TASKS_URL="http://localhost:8080"
+DEFAULT_TASKS_URL="http://focus-api.k8s"
+#DEFAULT_TASKS_URL="http://localhost:8080"
 
 
 def safe_text(text, color):
