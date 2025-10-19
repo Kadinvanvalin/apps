@@ -23,7 +23,8 @@ red="#FF0000"
 green="#fff"
 done_color="#00FF5A"
 remaining_color="#404040"
-
+# CONFIGURED_APP="FOCUS"
+# CONFIGURED_APP="REMINDERd"
 DEFAULT_TASKS_URL="http://focus-api.k8s"
 #DEFAULT_TASKS_URL="http://localhost:8080"
 
@@ -94,6 +95,86 @@ def root(child):
 
     # Main rendering function
 def main(config):
+    app = config.str("app", "REMINDER")
+
+    if app == "REMINDER":
+        return render_reminder(config)
+    elif app == "FOCUS":
+        return render_focus(config)
+    else:
+        return root(render.Row(
+            children=[
+                safe_text("NO APP SELECTED", red),
+
+            ]
+        ))
+
+def render_reminder(config):
+    return root(
+
+        render.Column(
+            main_align="start",
+            cross_align="start",
+            children=[
+                render.Box(
+                    child=render.WrappedText(
+                        content="Code Quality",
+                        width=60,
+                        color="#fa0",
+                    ),
+                    width=64,
+                    height=12, color="#a00"),
+
+        render.Text("Check for Null",
+        color="#fa0",
+        )
+    ]
+    )
+
+    )
+    # return root(render.Column(
+    #     children=[
+    #         safe_text("Code Quality:", blue),
+    #         render.Marquee(
+    #             width=64,
+    #             # height=20,
+    #             child=render.Text(
+    #                 content="Check for Null",
+    #                 color=red
+    #             ),
+    #             # scroll_direction="vertical",
+    #             offset_start=5,
+    #             offset_end=64,
+    #             # delay= 0,
+    #         )
+    #     ],
+    # )
+    # )
+#return render.Root(
+    #     child = render.Box(
+    #         render.Row(
+    #             expanded = True,  # Use as much horizontal space as possible
+    #             main_align = "space_evenly",  # Controls horizontal alignment
+    #             cross_align = "center",  # Controls vertical alignment
+    #             children = [
+    #                 render.Marquee(
+    #                     width = 50,
+    #                     offset_start = 49,
+    #                     align = "center",
+    #                     child = render.Text(
+    #                         content = content,
+    #                         font = font,
+    #                         color = color,
+    #                     ),
+    #                 ),
+    #             ],
+    #         ),
+    #     ),
+    # )
+
+
+def render_focus(config):
+# Code to execute if no other pattern matches (default case)
     tasks_url = config.str("tasks_url") or DEFAULT_TASKS_URL
     resp = http.get(tasks_url+"/focus", )
     data = resp.json()
