@@ -1,6 +1,6 @@
 ---
-id: 2ndbrain
-name: 2ndbrain
+id: 2ndbrainreminder
+name: 2ndbrainreminder
 summary: display markdown notes
 desc: Hits an api to keep you on track!
 author: kadinvanvalin
