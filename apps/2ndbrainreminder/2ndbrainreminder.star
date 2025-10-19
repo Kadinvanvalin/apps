@@ -7,17 +7,13 @@ Description: Fetches a JSON structure from a local server and shows the next unf
 load("http.star", "http")
 load("render.star", "render")
 load("schema.star", "schema")
-load("animation.star", "animation")
+
 # Configurable mock data (can replace with http.get in production)
 dataa = {
     "status": "ok",
     "total": 8,
     "completed": 3,
-    "percent": 38,
-    "next": "Tell sean about the currency bug sometime in the near furture hello",
-    "last_updated": "2025-10-18T20:52:16.723Z",
-    "age_hours": 3.01151222222222
-
+    "next": "Tell sean about the currency bug sometime in the near furture hello"
 }
 blue="#3399FF"
 red="#FF0000"
@@ -25,8 +21,8 @@ green="#fff"
 done_color="#00FF5A"
 remaining_color="#404040"
 
-#DEFAULT_TASKS_URL="http://focus-api.k8s"
-DEFAULT_TASKS_URL="http://localhost:8080"
+DEFAULT_TASKS_URL="http://focus-api.k8s"
+
 
 
 def safe_text(text, color):
@@ -37,7 +33,7 @@ def safe_text(text, color):
             content=text,
             color=color
         ),
-        scroll_direction="vertical",
+        scroll_direction1="vertical",
         offset_start=5,
         offset_end=64,
         delay= 5,
@@ -47,12 +43,11 @@ def wrap_text(text, color):
     return render.WrappedText(
         width=60,
         content=text,
-        height=200,
         color=color,
         font="tom-thumb"
     )
 
-def render_completed(completed, total, age_hours):
+def render_completed(completed, total):
     count= render.Row(
         children=[
             render.Text(
@@ -80,7 +75,7 @@ def render_completed(completed, total, age_hours):
             render.Text(
                 color="#FFF",
                 font="tom-thumb",
-                content= str(age_hours) + " H"
+                content="TODO"
             ),
             count
         ]
@@ -111,39 +106,13 @@ def main(config):
 
     completed = int(data["completed"])
     total = int(data["total"])
-    age_hours = int(data["age_hours"])
+
     components = []
-    components.append(render_completed(completed, total, age_hours))
+    components.append(render_completed(completed, total))
     components.append(
         render.Padding(
             child=wrap_text(data["next"], "#FFD700"),
             pad=(0,2,0,0)
         )
     )
-
-    return root(animation.Transformation(
-        child = render.Column(components),
-        duration = 100,
-        delay = 0,
-        origin = animation.Origin(0.5, 0.5),
-        direction = "normal",
-        fill_mode = "forwards",
-        keyframes = [
-            animation.Keyframe(
-                percentage = 0.0,
-                transforms = [animation.Translate(0.0, 0.0)],
-
-            ),
-            animation.Keyframe(
-                percentage = 0.3,
-                transforms = [animation.Translate(0.0, -10.0)],
-            ),
-            animation.Keyframe(
-                percentage = 1.0,
-                transforms = [animation.Translate(0.0, -10.0)],
-            ),
-        ],
-    ))
-
-
-
+    return root(render.Column(components))
