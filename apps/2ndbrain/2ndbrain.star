@@ -8,9 +8,17 @@ load("http.star", "http")
 load("render.star", "render")
 load("schema.star", "schema")
 load("animation.star", "animation")
+load("encoding/base64.star", "base64")
 
 
+# BTC_ICON = icon.readall()
 # Configurable mock data (can replace with http.get in production)
+BTC_ICON = base64.decode("""
+iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAYAAAA7bUf6AAAAlklEQVQ4T2NkwAH+H2T/jy7FaP+
+TEZtyDEG4Zi0TTPXXzoDF0A1DMQRsADbN6MZdO4NiENwQbAbERh1lWLzMmgFGo5iFZBDYEFwuwG
+sISCPUIKyGgDRjAyBXYXMNIz5XgDQga8TpLboYgux8DO/AwoUuLiEqTLBFMcmxQ7V0gssgklIsL
+AYozjsoBoE45OZi5DRBSnkCAMLhlPBiQGHlAAAAAElFTkSuQmCC
+""")
 
 def get_schema():
     return schema.Schema(
@@ -21,7 +29,7 @@ def get_schema():
                 name="App",
                 desc="Select which App to display",
                 icon="brush",
-                default="FOCUS",
+                default="TOMATO",
                 options=[
                     schema.Option(
                         display="Focus",
@@ -31,6 +39,11 @@ def get_schema():
                         display="Reminder",
                         value="REMINDER",
                     ),
+                    schema.Option(
+                        display="timer",
+                        value="TOMATO",
+                    ),
+
                 ],
             ),
             schema.Text(
@@ -71,12 +84,14 @@ DEFAULT_TASKS_URL = "http://focus-api.k8s"
 #DEFAULT_TASKS_URL="http://localhost:8080"
 
 def main(config):
-    app = config.str("app", "REMINDER")
+    app = config.str("app", "TOMATO")
 
     if app == "REMINDER":
         return render_reminder(config)
     elif app == "FOCUS":
         return render_focus(config)
+    elif app == "TOMATO":
+        return render_timer(config)
     else:
         return root(render.Row(
             children=[
@@ -84,7 +99,9 @@ def main(config):
 
             ]
         ))
-    
+def render_timer(config):
+    return render.Root(render.Image(src = BTC_ICON),)
+
 def safe_text(text, color):
     return render.Marquee(
         width=64,
@@ -149,7 +166,7 @@ def root(child):
     return render.Root(
         render.Padding(
             child=child,
-            pad=(2, 1, 2, 1)
+            pad=(0, 0, 0, 0)
         )
     )
 
