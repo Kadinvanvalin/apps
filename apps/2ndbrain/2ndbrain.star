@@ -10,6 +10,8 @@ load("schema.star", "schema")
 load("animation.star", "animation")
 load("encoding/base64.star", "base64")
 load("random.star", "random")
+load("time.star", "time")
+load("humanize.star", "humanize")
 DEFAULT_TASKS_URL = "http://focus-api.k8s"
 #DEFAULT_TASKS_URL="http://localhost:8080"
 
@@ -111,15 +113,17 @@ def main(config):
         ))
 
 def render_things(config):
+    # "updated_at":"2025-10-22T09:44:29-05:00"
     tasks_url = config.str("tasks_url") or DEFAULT_TASKS_URL
     resp = http.get(tasks_url + "/things")
     data = resp.json()
     print(data)
+    updated_at = time.parse_time(data['updated_at'])
     icon = render.Image(src  = THINGS_ICON)
     count =  render.WrappedText(
-        width=20,
-        content=str(data['count']),
-        height=10,
+        width=40,
+        content="inbox: " +str(data['count']) + "updated at: " + humanize.time(updated_at),
+        height=32,
         color=blue,
         font="tom-thumb"
     )
