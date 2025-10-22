@@ -25,6 +25,7 @@ AYozjsoBoE45OZi5DRBSnkCAMLhlPBiQGHlAAAAAElFTkSuQmCC
 THINGS_ICON = base64.decode("""
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFR3BMJHTpJnXqJHPoJ3XrJHPpJXTpJnTqJHPoJnXqNHPQI3PoJHTpI3PoI3PoJHPoJnTnJnXqJHTpJHPpJnXqJXTpJHPoJHTpJHTpJHTpI3PoJHPpJHPpI3PoI3PpJXToJXTpJHTpJHTpI3TpI3PoJHTpJXTpJnTnI3TpI3TpI3PoI3PoI3PoJHTpJHPoJHTpJHTpJHPpJHTpJHTpJHTpLHTfJXTpI3ToJHPoJHTpJHTpJHTpI3TpJHPoJXTpJHTmJnLo////JHPovsHJN0FJ/f////7/JHPmInTo///9I3LnNkBINj5H/P7/JHPqInHkvsDIIHPn+f3/KXjkJnLp6/X9NUJJvsLH/P//I3Llv8PLudL63uv+VJDpcqXxPILo/P/+zuH+/v/9pML18/b5OEBJ//3/j7f3OEJKInPrHm7lOkJJIHLqvcHG9fj75efrI3TnP0dPPERLJnPmSozoXJfnHnLmMXvkIHPl/P3+2NvftL7SxMbM9/v+OEFHRExTJXTq+f//MzxDNn7lM37pN0FH8vr/PYTnIXHmqbvXKHfqa6LoSFBWzM/TUFheI3Lqvtb4I3TkanF3XWRq8vT5SYnk0N/4R4jp+vv8+fr7ztHV7vH0L3rp6e77favxvsHNcHZ87/j+TFRbYmlwf6zpn7feW5Tpqcn3Lnfk29/i4OTnbqHq1uP50eT8irbzVZPskpidKXTjkrPluNL16u7xLXjoQ4Xn6PH9IXDplLrxt8/yosX2QYLgp6yxJ3boxtv4l52jWWBmxcrO4e792un9LnjgT47qgomOgabYmb7tbqLxeqnrOYDowMTIfYOIiI6U6Ovu0dbag6/qtru/oqesnaKom7/1nr7xVVxjucHPVJDj1dndrLG3r832jZOYYZrq3+v6h7LvlLDXsre8uL7FbZ3hMDhAZ5zrI3TsdHqA5Onv2Ob5f4WMYZPdeqfwnrPQv8bKo7fUrrS5eX+GeKfmosLud6Hh7PD2q8fvusHIhKriYZLYeH2DkbjpibDkKnbaLeOxZwAAAAF0Uk5TAEDm2GYAAAABYktHRACIBR1IAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6QoWDwU0lcK3xQAAAJVJREFUGNNjYMANmKEAixCyMDMzFlHmY5snQMGuY3DBd45w8A5DcPZFJMFLULE/+Y6X4IIPHR1TgGKTZjk6PoQLbnJ03Lth9ssrQNU74YI7HR1nHMhYMBNF8DrIxDurQOR1uGAywknJcMFlE15XgkQqX09YxozkzU0rgWATsjeB4JszEJxAE5x64tGjE1NxBRP+QEYHAGTFQ3Nt+YqLAAAAAElFTkSuQmCC
 """)
+THINGS_ICON_MIN = base64.decode("""iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAMAAADz0U65AAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFR3BMJHTpJnXqJHPoJ3XrJHPpJXTpJnTqJHPoJnXqNHPQI3PoJHTpI3PoI3PoJHPoJnTnJnXqJHTpJHPpJnXqJXTpJHPoJHTpJHTpJHTpI3PoJHPpJHPpI3PoI3PpJXToJXTpJHTpJHTpI3TpI3PoJHTpJXTpJnTnI3TpI3TpI3PoI3PoI3PoJHTpJHPoJHTpJHTpJHPpJHTpJHTpJHTpLHTfJXTpI3ToJHPoJHTpJHTpJHTpI3TpJHPoJXTpJHTmJnLo////JHPovsHJN0FJ/f////7/JHPmInTo///9I3LnNkBINj5H/P7/JHPqInHkvsDIIHPn+f3/KXjkJnLp6/X9NUJJvsLH/P//I3Llv8PLudL63uv+VJDpcqXxPILo/P/+zuH+/v/9pML18/b5OEBJ//3/j7f3OEJKInPrHm7lOkJJIHLqvcHG9fj75efrI3TnP0dPPERLJnPmSozoXJfnHnLmMXvkIHPl/P3+2NvftL7SxMbM9/v+OEFHRExTJXTq+f//MzxDNn7lM37pN0FH8vr/PYTnIXHmqbvXKHfqa6LoSFBWzM/TUFheI3Lqvtb4I3TkanF3XWRq8vT5SYnk0N/4R4jp+vv8+fr7ztHV7vH0L3rp6e77favxvsHNcHZ87/j+TFRbYmlwf6zpn7feW5Tpqcn3Lnfk29/i4OTnbqHq1uP50eT8irbzVZPskpidKXTjkrPluNL16u7xLXjoQ4Xn6PH9IXDplLrxt8/yosX2QYLgp6yxJ3boxtv4l52jWWBmxcrO4e792un9LnjgT47qgomOgabYmb7tbqLxeqnrOYDowMTIfYOIiI6U6Ovu0dbag6/qtru/oqesnaKom7/1nr7xVVxjucHPVJDj1dndrLG3r832jZOYYZrq3+v6h7LvlLDXsre8uL7FbZ3hMDhAZ5zrI3TsdHqA5Onv2Ob5f4WMYZPdeqfwnrPQv8bKo7fUrrS5eX+GeKfmosLud6Hh7PD2q8fvusHIhKriYZLYeH2DkbjpibDkKnbaLeOxZwAAAAF0Uk5TAEDm2GYAAAABYktHRACIBR1IAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6QoWFgE04lnqPgAAAElJREFUCNdjYGgBga0MDC0/HgBBXQtDy35Hx7z6H0DGtPpVz25PAzG2PKtyBDF2pVRWpuxqYWDe+nTWrKdbmRkYmFuePm1mZgAAESEimPXwLoEAAAAASUVORK5CYII=""")
 def get_schema():
     return schema.Schema(
         version="1",
@@ -88,6 +89,7 @@ blue = "#3399FF"
 red = "#FF0000"
 green = "#fff"
 done_color = "#00FF5A"
+white = "#fff"
 remaining_color = "#404040"
 # CONFIGURED_APP="FOCUS"
 # CONFIGURED_APP="REMINDERd"
@@ -119,15 +121,35 @@ def render_things(config):
     data = resp.json()
     print(data)
     updated_at = time.parse_time(data['updated_at'])
-    icon = render.Image(src  = THINGS_ICON)
-    count =  render.WrappedText(
-        width=40,
-        content="inbox: " +str(data['count']) + "updated at: " + humanize.time(updated_at),
-        height=32,
-        color=blue,
+    icon = render.Image(src  = THINGS_ICON_MIN)
+    count_color = white
+    if(data['count'] > 100):
+        count_color = red
+
+    # count = render.Text(
+    #     # width=54,
+    #     content="inbox: " + str(data['count']),
+    #     height=15,
+    #     color=count_color,
+    #     font="tom-thumb"
+    # )
+    count = render.Row(
+        # width=54,
+        children=[
+            render.Text(content="inbox: ", color=white ),
+            render.Text(content= str(data['count']),     color=count_color),
+        ]
+
+    )
+    updated_at =  render.WrappedText(
+        width=54,
+        content="updated: " + humanize.time(updated_at),
+        height=15,
+        color=white,
         font="tom-thumb"
     )
-    return  render.Root(render.Row(children = [icon,count]))
+    content = render.Column(children = [count,updated_at])
+    return  render.Root(render.Row(children = [icon,content]))
 
 def render_timer(config):
     return render.Root(render.Image(src = BTC_ICON),)
