@@ -10,8 +10,9 @@ load("schema.star", "schema")
 load("animation.star", "animation")
 load("encoding/base64.star", "base64")
 load("random.star", "random")
+DEFAULT_TASKS_URL = "http://focus-api.k8s"
+#DEFAULT_TASKS_URL="http://localhost:8080"
 
-# BTC_ICON = icon.readall()
 # Configurable mock data (can replace with http.get in production)
 BTC_ICON = base64.decode("""
 iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAYAAAA7bUf6AAAAlklEQVQ4T2NkwAH+H2T/jy7FaP+
@@ -82,10 +83,6 @@ done_color = "#00FF5A"
 remaining_color = "#404040"
 # CONFIGURED_APP="FOCUS"
 # CONFIGURED_APP="REMINDERd"
-#DEFAULT_TASKS_URL = "http://focus-api.k8s"
-
-
-DEFAULT_TASKS_URL="http://localhost:8080"
 
 def main(config):
     app = config.str("app", "APHORISM")
