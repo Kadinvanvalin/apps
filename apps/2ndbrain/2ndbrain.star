@@ -9,7 +9,7 @@ load("render.star", "render")
 load("schema.star", "schema")
 load("animation.star", "animation")
 load("encoding/base64.star", "base64")
-
+load("random.star", "random")
 
 # BTC_ICON = icon.readall()
 # Configurable mock data (can replace with http.get in production)
@@ -43,7 +43,10 @@ def get_schema():
                         display="timer",
                         value="TOMATO",
                     ),
-
+                    schema.Option(
+                        display="aphorism",
+                        value="APHORISM",
+                    ),
                 ],
             ),
             schema.Text(
@@ -53,11 +56,12 @@ def get_schema():
                 icon="cog",
             ),
             schema.Text(
-                id="reminder_category",
+                id="reminder_tag",
                 name="Tag Reminder",
                 desc="",
                 icon="cog",
             ),
+
         ]
     )
 
@@ -78,16 +82,17 @@ done_color = "#00FF5A"
 remaining_color = "#404040"
 # CONFIGURED_APP="FOCUS"
 # CONFIGURED_APP="REMINDERd"
-DEFAULT_TASKS_URL = "http://focus-api.k8s"
+#DEFAULT_TASKS_URL = "http://focus-api.k8s"
 
 
-#DEFAULT_TASKS_URL="http://localhost:8080"
+DEFAULT_TASKS_URL="http://localhost:8080"
 
 def main(config):
-    app = config.str("app", "TOMATO")
-
+    app = config.str("app", "APHORISM")
     if app == "REMINDER":
         return render_reminder(config)
+    elif app == "APHORISM":
+            return render_reminder_api(config)
     elif app == "FOCUS":
         return render_focus(config)
     elif app == "TOMATO":
@@ -196,6 +201,50 @@ def render_reminder(config):
     )
 
 
+
+def render_reminder_api(config):
+    text = config.str("reminder", "Null Check")
+    tag = config.str("reminder_tag", "Code Quality")
+    reminder_tag_color = config.str("reminder_tag_color", blue)
+
+    tasks_url = config.str("tasks_url") or DEFAULT_TASKS_URL
+    resp = http.get(tasks_url + "/reminder")
+    data = resp.json()
+
+    # if data["status"] != "ok":
+    #     return root(render.Row(
+    #         children=[
+    #             safe_text("[!!] Git Sync Error", red),
+    #             safe_text("Check SSH key.", red)
+    #         ]
+    #         )
+    #     )
+    num = random.number(0,  len(data))
+    reminder_text = data[num]["text"]
+
+    return root(
+        render.Column(
+            main_align="start",
+            cross_align="start",
+            children=[
+                render.Box(
+                    child=render.WrappedText(
+                        content=reminder_text,
+                        width=60,
+                        linespacing=1,
+                        color="#000",
+                        font="CG-pixel-4x5-mono"
+                    ),
+                    width=64,
+                    height=32,
+                    color="#FFF"),
+                # render.WrappedText(reminder_text, font="tom-thumb", color="#fa0",)
+            ]
+        )
+    )
+
+
+
 def render_focus(config):
     # Code to execute if no other pattern matches (default case)
     tasks_url = config.str("tasks_url") or DEFAULT_TASKS_URL
@@ -222,27 +271,27 @@ def render_focus(config):
             pad=(0, 2, 0, 0)
         )
     )
-
-    return root(animation.Transformation(
-        child=render.Column(components),
-        duration=100,
-        delay=0,
-        origin=animation.Origin(0.5, 0.5),
-        direction="normal",
-        fill_mode="forwards",
-        keyframes=[
-            animation.Keyframe(
-                percentage=0.0,
-                transforms=[animation.Translate(0.0, 0.0)],
-
-            ),
-            animation.Keyframe(
-                percentage=0.3,
-                transforms=[animation.Translate(0.0, -10.0)],
-            ),
-            animation.Keyframe(
-                percentage=1.0,
-                transforms=[animation.Translate(0.0, -10.0)],
-            ),
-        ],
-    ))
+    return root(render.Column(components))
+    # return root(animation.Transformation(
+    #     child=render.Column(components),
+    #     duration=100,
+    #     delay=0,
+    #     origin=animation.Origin(0.5, 0.5),
+    #     direction="normal",
+    #     fill_mode="forwards",
+    #     keyframes=[
+    #         animation.Keyframe(
+    #             percentage=0.0,
+    #             transforms=[animation.Translate(0.0, 0.0)],
+    #
+    #         ),
+    #         animation.Keyframe(
+    #             percentage=0.3,
+    #             transforms=[animation.Translate(0.0, -10.0)],
+    #         ),
+    #         animation.Keyframe(
+    #             percentage=1.0,
+    #             transforms=[animation.Translate(0.0, -10.0)],
+    #         ),
+    #     ],
+    # ))
