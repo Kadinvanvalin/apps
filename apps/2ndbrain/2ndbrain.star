@@ -10,8 +10,8 @@ load("schema.star", "schema")
 load("animation.star", "animation")
 load("encoding/base64.star", "base64")
 load("random.star", "random")
-#DEFAULT_TASKS_URL = "http://focus-api.k8s"
-DEFAULT_TASKS_URL="http://localhost:8080"
+DEFAULT_TASKS_URL = "http://focus-api.k8s"
+#DEFAULT_TASKS_URL="http://localhost:8080"
 
 # Configurable mock data (can replace with http.get in production)
 BTC_ICON = base64.decode("""
