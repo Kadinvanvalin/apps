@@ -10,8 +10,8 @@ load("schema.star", "schema")
 load("animation.star", "animation")
 load("encoding/base64.star", "base64")
 load("random.star", "random")
-DEFAULT_TASKS_URL = "http://focus-api.k8s"
-#DEFAULT_TASKS_URL="http://localhost:8080"
+#DEFAULT_TASKS_URL = "http://focus-api.k8s"
+DEFAULT_TASKS_URL="http://localhost:8080"
 
 # Configurable mock data (can replace with http.get in production)
 BTC_ICON = base64.decode("""
@@ -20,7 +20,9 @@ TEZtyDEG4Zi0TTPXXzoDF0A1DMQRsADbN6MZdO4NiENwQbAbERh1lWLzMmgFGo5iFZBDYEFwuwG
 sISCPUIKyGgDRjAyBXYXMNIz5XgDQga8TpLboYgux8DO/AwoUuLiEqTLBFMcmxQ7V0gssgklIsL
 AYozjsoBoE45OZi5DRBSnkCAMLhlPBiQGHlAAAAAElFTkSuQmCC
 """)
-
+THINGS_ICON = base64.decode("""
+iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAwBQTFRFR3BMJHTpJnXqJHPoJ3XrJHPpJXTpJnTqJHPoJnXqNHPQI3PoJHTpI3PoI3PoJHPoJnTnJnXqJHTpJHPpJnXqJXTpJHPoJHTpJHTpJHTpI3PoJHPpJHPpI3PoI3PpJXToJXTpJHTpJHTpI3TpI3PoJHTpJXTpJnTnI3TpI3TpI3PoI3PoI3PoJHTpJHPoJHTpJHTpJHPpJHTpJHTpJHTpLHTfJXTpI3ToJHPoJHTpJHTpJHTpI3TpJHPoJXTpJHTmJnLo////JHPovsHJN0FJ/f////7/JHPmInTo///9I3LnNkBINj5H/P7/JHPqInHkvsDIIHPn+f3/KXjkJnLp6/X9NUJJvsLH/P//I3Llv8PLudL63uv+VJDpcqXxPILo/P/+zuH+/v/9pML18/b5OEBJ//3/j7f3OEJKInPrHm7lOkJJIHLqvcHG9fj75efrI3TnP0dPPERLJnPmSozoXJfnHnLmMXvkIHPl/P3+2NvftL7SxMbM9/v+OEFHRExTJXTq+f//MzxDNn7lM37pN0FH8vr/PYTnIXHmqbvXKHfqa6LoSFBWzM/TUFheI3Lqvtb4I3TkanF3XWRq8vT5SYnk0N/4R4jp+vv8+fr7ztHV7vH0L3rp6e77favxvsHNcHZ87/j+TFRbYmlwf6zpn7feW5Tpqcn3Lnfk29/i4OTnbqHq1uP50eT8irbzVZPskpidKXTjkrPluNL16u7xLXjoQ4Xn6PH9IXDplLrxt8/yosX2QYLgp6yxJ3boxtv4l52jWWBmxcrO4e792un9LnjgT47qgomOgabYmb7tbqLxeqnrOYDowMTIfYOIiI6U6Ovu0dbag6/qtru/oqesnaKom7/1nr7xVVxjucHPVJDj1dndrLG3r832jZOYYZrq3+v6h7LvlLDXsre8uL7FbZ3hMDhAZ5zrI3TsdHqA5Onv2Ob5f4WMYZPdeqfwnrPQv8bKo7fUrrS5eX+GeKfmosLud6Hh7PD2q8fvusHIhKriYZLYeH2DkbjpibDkKnbaLeOxZwAAAAF0Uk5TAEDm2GYAAAABYktHRACIBR1IAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6QoWDwU0lcK3xQAAAJVJREFUGNNjYMANmKEAixCyMDMzFlHmY5snQMGuY3DBd45w8A5DcPZFJMFLULE/+Y6X4IIPHR1TgGKTZjk6PoQLbnJ03Lth9ssrQNU74YI7HR1nHMhYMBNF8DrIxDurQOR1uGAywknJcMFlE15XgkQqX09YxozkzU0rgWATsjeB4JszEJxAE5x64tGjE1NxBRP+QEYHAGTFQ3Nt+YqLAAAAAElFTkSuQmCC
+""")
 def get_schema():
     return schema.Schema(
         version="1",
@@ -47,6 +49,10 @@ def get_schema():
                     schema.Option(
                         display="aphorism",
                         value="APHORISM",
+                    ),
+                    schema.Option(
+                        display="things",
+                        value="THINGS",
                     ),
                 ],
             ),
@@ -85,7 +91,9 @@ remaining_color = "#404040"
 # CONFIGURED_APP="REMINDERd"
 
 def main(config):
-    app = config.str("app", "APHORISM")
+    app = config.str("app", "THINGS")
+    if app == "THINGS":
+        return render_things(config)
     if app == "REMINDER":
         return render_reminder(config)
     elif app == "APHORISM":
@@ -101,6 +109,22 @@ def main(config):
 
             ]
         ))
+
+def render_things(config):
+    tasks_url = config.str("tasks_url") or DEFAULT_TASKS_URL
+    resp = http.get(tasks_url + "/things")
+    data = resp.json()
+    print(data)
+    icon = render.Image(src  = THINGS_ICON)
+    count =  render.WrappedText(
+        width=20,
+        content=str(data['count']),
+        height=10,
+        color=blue,
+        font="tom-thumb"
+    )
+    return  render.Root(render.Row(children = [icon,count]))
+
 def render_timer(config):
     return render.Root(render.Image(src = BTC_ICON),)
 
