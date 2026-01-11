@@ -5,13 +5,10 @@ Description: Displays the current AQI value and level by location using data pro
 Author: mjc-gh
 """
 
-load("cache.star", "cache")
 load("encoding/json.star", "json")
-
-#load("hash.star", "hash")
 load("http.star", "http")
 load("humanize.star", "humanize")
-load("render.star", "render")
+load("render.star", "canvas", "render")
 load("schema.star", "schema")
 
 # original tidbyt api key
@@ -44,23 +41,18 @@ def get_alert_colors(category_num):
         return ("#7e0023", "#FFF")
 
 def get_current_observation_url(api_key, lat, lng):
-    return "https://www.airnowapi.org/aq/forecast/latLong/?format=application/json&latitude={lat}&longitude={lng}&api_key={api_key}".format(
+    return "https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude={lat}&longitude={lng}&api_key={api_key}".format(
         lat = lat,
         lng = lng,
         api_key = api_key,
     )
 
 def get_current_observation(api_key, lat, lng):
-    cache_key = "current_observation:{lat},{lng}".format(lat = lat, lng = lng)
-    body = cache.get(cache_key)
+    response = http.get(url = get_current_observation_url(api_key, lat, lng), ttl_seconds = 30 * 60)
+    if response.status_code != 200:
+        return {"error": response.status_code}
 
-    if body == None:
-        response = http.get(url = get_current_observation_url(api_key, lat, lng))
-        body = response.body()
-
-        cache.set(cache_key, body, ttl_seconds = 1800)
-
-    data = json.decode(body)
+    data = response.json()
 
     for obj in data:
         if obj["ParameterName"] == "PM2.5":
@@ -69,32 +61,37 @@ def get_current_observation(api_key, lat, lng):
     return None
 
 def render_alert_circle(aqi, alert_colors):
+    scale = 2 if canvas.is2x() else 1
+
     bg_color, txt_color = alert_colors
-    font = "10x20"
+    font = "terminus-28-light" if scale == 2 else "terminus-14-light"
 
     if aqi > 99:
-        font = "6x13"
+        font = "terminus-24-light" if scale == 2 else "terminus-12"
 
     return render.Box(
-        width = 26,
-        height = 32,
-        padding = 1,
+        width = 26 * scale,
+        height = 32 * scale,
+        padding = 1 * scale,
         child = render.Circle(
             color = bg_color,
-            diameter = 24,
+            diameter = 24 * scale,
             child = render.Text("%d" % (aqi), font = font, color = txt_color),
         ),
     )
 
 def render_category_text(category_name, reporting_area, alert_colors):
+    scale = 2 if canvas.is2x() else 1
+
     bg_color, _ = alert_colors
+    font = "terminus-14" if scale == 2 else "tom-thumb"
 
     if category_name == "Unhealthy for Sensitive Groups":
         category_name = "Unhealthy for Sensitive"
 
     return render.Box(
-        width = 38,
-        height = 32,
+        width = 38 * scale,
+        height = 32 * scale,
         child = render.Column(
             expanded = True,
             main_align = "space_around",
@@ -104,14 +101,16 @@ def render_category_text(category_name, reporting_area, alert_colors):
                     category_name,
                     align = "center",
                     color = bg_color,
-                    font = "tom-thumb",
+                    font = font,
                 ),
                 render.Marquee(
-                    width = 30,
+                    width = 30 * scale,
+                    offset_start = 30 * scale,
+                    offset_end = 30 * scale,
                     child = render.Text(
                         reporting_area,
                         color = "#DDD",
-                        font = "tom-thumb",
+                        font = font,
                     ),
                 ),
             ],
@@ -121,20 +120,52 @@ def render_category_text(category_name, reporting_area, alert_colors):
 def main(config):
     location = json.decode(config.get("location", DEFAULT_LOCATION))
     api_key = config.get("api_key", DEFAULT_API_KEY)
+    hide_below = config.get("hide_below", "0")
 
     lat = humanize.float(ACCURACY, float(location["lat"]))
     lng = humanize.float(ACCURACY, float(location["lng"]))
 
     observation = get_current_observation(api_key, lat, lng)
 
+    if observation and "error" in observation:
+        msg = "AirNow API Error: %d" % observation["error"]
+        if observation["error"] == 429:
+            msg = "Rate limit exceeded. Please configure your own API Key."
+        return render.Root(
+            child = render.Box(
+                child = render.WrappedText(
+                    content = msg,
+                    width = canvas.width(),
+                    align = "center",
+                    color = "#f66",
+                ),
+            ),
+        )
+
+    if not observation:
+        return render.Root(
+            child = render.Box(
+                child = render.WrappedText(
+                    content = "No PM2.5 data for this location",
+                    width = canvas.width(),
+                    align = "center",
+                    color = "#f66",
+                ),
+            ),
+        )
+
     category_num = observation["Category"]["Number"]
     category_name = observation["Category"]["Name"]
     reporting_area = observation["ReportingArea"]
     aqi = observation["AQI"]
 
+    if category_num < int(hide_below):
+        return []
+
     alert_colors = get_alert_colors(category_num)
 
     return render.Root(
+        delay = 25 if canvas.is2x() else 50,
         child = render.Row(
             main_align = "start",
             expanded = True,
@@ -146,6 +177,33 @@ def main(config):
     )
 
 def get_schema():
+    hide_options = [
+        schema.Option(
+            display = "Always Show",
+            value = "0",
+        ),
+        schema.Option(
+            display = "Moderate (51-100)",
+            value = "2",
+        ),
+        schema.Option(
+            display = "Unhealthy for Sensitive Groups (101-150)",
+            value = "3",
+        ),
+        schema.Option(
+            display = "Unhealthy (151-200)",
+            value = "4",
+        ),
+        schema.Option(
+            display = "Very Unhealthy (201-300)",
+            value = "5",
+        ),
+        schema.Option(
+            display = "Hazardous (301-500)",
+            value = "6",
+        ),
+    ]
+
     return schema.Schema(
         version = "1",
         fields = [
@@ -160,6 +218,15 @@ def get_schema():
                 name = "API Key",
                 desc = "API Key, freely available at airnowapi.org",
                 icon = "key",
+                secret = True,
+            ),
+            schema.Dropdown(
+                id = "hide_below",
+                name = "Hide Below",
+                desc = "Hide this app if the AQI is below the chosen value.",
+                icon = "eye",
+                default = hide_options[0].value,
+                options = hide_options,
             ),
         ],
     )

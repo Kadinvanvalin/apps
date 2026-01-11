@@ -6,4 +6,6 @@ desc: Showcase your daily, weekly, monthly, or annual sales totals.
 author: Shopify
 fileName: sales_trends.star
 packageName: salestrends
-recommended_interval: 5
+recommendedInterval: 5
+broken: true
+brokenReason: "www.shopcounter.app: no such host"

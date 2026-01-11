@@ -44,7 +44,7 @@ REFERENCE_FINDER = "<strong>"
 REFERENCE_FINDER_END = "</strong>"
 REFERENCE_OFFSET = 0
 
-def main(config):
+def main():
     return render.Root(
         delay = 75,
         show_full_animation = True,
@@ -57,7 +57,7 @@ def main(config):
                     child =
                         render.Column(
                             main_align = "space_between",
-                            children = render_text(config),
+                            children = render_text(),
                         ),
                 ),
                 render.Box(
@@ -84,8 +84,8 @@ def get_cachable_data(url):
 
     return res.body()
 
-def render_text(config):
-    current_month_day = time.now().in_location(config.get("$tz", "America/Chicago")).format("01/02/06")[:5]
+def render_text():
+    current_month_day = time.now().in_location(time.tz()).format("01/02/06")[:5]
     daily_reflection = json.decode(get_cachable_data(API_STUB + current_month_day))["data"].replace("&quot;", "\"").replace("&nbsp;", " ")
 
     title = extract_text(daily_reflection, TITLE_FINDER, TITLE_FINDER_END, TITLE_OFFSET).title()

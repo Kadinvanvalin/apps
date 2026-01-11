@@ -47,6 +47,7 @@ def get_schema():
                 name = "client_secret",
                 desc = "From OpenSky API Client details (Note: OpenSky requiring new OAuth2 flow, replacing old Username + Password auth)",
                 icon = "lock",
+                secret = True,
             ),
         ],
     )
@@ -298,10 +299,10 @@ def main(config):
     print(your_coord)
 
     params = {
-        "lamin": str(math.round(bbox["lamin"] / .001) * .001),
-        "lomin": str(math.round(bbox["lomin"] / .001) * .001),
-        "lamax": str(math.round(bbox["lamax"] / .001) * .001),
-        "lomax": str(math.round(bbox["lomax"] / .001) * .001),
+        "lamin": str(math.round(bbox["lamin"] / 0.001) * 0.001),
+        "lomin": str(math.round(bbox["lomin"] / 0.001) * 0.001),
+        "lamax": str(math.round(bbox["lamax"] / 0.001) * 0.001),
+        "lomax": str(math.round(bbox["lomax"] / 0.001) * 0.001),
         "extended": "1",
     }
 

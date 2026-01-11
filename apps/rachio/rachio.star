@@ -5,55 +5,17 @@ Description: View schedules and data for a Rachio sprinkler system.
 Authors: Matt Fischer and Rob Ison
 """
 
-load("encoding/base64.star", "base64")
 load("http.star", "http")
+load("images/rachio_icon.png", RACHIO_ICON_ASSET = "file")
 load("math.star", "math")
-load("render.star", "render")
+load("render.star", "canvas", "render")
 load("schema.star", "schema")
 load("time.star", "time")
 
-RACHIO_ICON = base64.decode("""
-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
-URDRv4C6YMmClgWvIr0iyyLvRJlESaJ6oxWjE6Kbo1/HeMeUx0hjrWJXxl6K04gTxHXHY+Oj45vipxf6LNy5cDzBPqE44foi40V5iy4s1licvvj4EsUlnCVH
-EtGJMYktie85oZwGzvTSgKW1S6e4bO4u7hOeB28Hb5Lvyi/nTyS5JpUnPUp2Td6ePJninlKR8lTAFlQLnqf6p9alvk4LTduf9ik9Jr09A5eRmHFUSBGmCfsy
-tTPzMoezzLOKs6TLnJftXDYlChI1ZUPZi7K7xTTZz9SAxESyXjKa45ZTk/MmNzr3SJ5ynjBvYLnZ8k3LJ/J9879egVrBXdFboFuwtmB0pefK+lXQqqWrelfr
-ry5aPb7Gb82BtYS1aWt/KLQuLC98uS5mXU+RVtGaorH1futbixWKRcU3NrhsqNuI2ijYOLhp7qaqTR9LeCUXS61LK0rfb+ZuvviVzVeVX33akrRlsMyhbM9W
-zFbh1uvb3LcdKFcuzy8f2x6yvXMHY0fJjpc7l+y8UGFXUbeLsEuyS1oZXNldZVC1tep9dUr1SI1XTXutZu2m2te7ebuv7PHY01anVVda926vYO/Ner/6zgaj
-hop9mH05+x42Rjf2f836urlJo6m06cN+4X7pgYgDfc2Ozc0tmi1lrXCrpHXyYMLBy994f9Pdxmyrb6e3lx4ChySHHn+b+O31w0GHe4+wjrR9Z/hdbQe1o6QT
-6lzeOdWV0iXtjusePhp4tLfHpafje8vv9x/TPVZzXOV42QnCiaITn07mn5w+lXXq6enk02O9S3rvnIk9c60vvG/wbNDZ8+d8z53p9+w/ed71/LELzheOXmRd
-7LrkcKlzwH6g4wf7HzoGHQY7hxyHui87Xe4Znjd84or7ldNXva+euxZw7dLI/JHh61HXb95IuCG9ybv56Fb6ree3c27P3FlzF3235J7SvYr7mvcbfjT9sV3q
-ID0+6j068GDBgztj3LEnP2X/9H686CH5YcWEzkTzI9tHxyZ9Jy8/Xvh4/EnWk5mnxT8r/1z7zOTZd794/DIwFTs1/lz0/NOvm1+ov9j/0u5l73TY9P1XGa9m
-Xpe8UX9z4C3rbf+7mHcTM7nvse8rP5h+6PkY9PHup4xPn34D94Tz+3EBhusAAAAJcEhZcwAALiMAAC4jAXilP3YAAAAHdElNRQfoChQBGDl/1JFAAAAAGXRF
-WHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAAcBJREFUKM9jYMAB2NnZsYozovH1EysY1MylxKWYmBgfPnvCfOf0xXnt2DWoe4Sy+ObfEZT7j2qE
-wZdnr9f03d+1CsJlhqv+EV7/kEcMro6F4b8Y4/8vDIwv2Hj5tCwFv735cPcqAwMDE1TaN/85Ox9c9WFrgSeBUrMNoCJP2XilwkoYGRmhNugnlt/SdmVgYBBg
-/D9NjUufg8lZkbfk8Juq+z/gRjxj5TEQ4X1+9iALAwMDg5oFxN3sjAzmirw+XMz8HCyf/6GHx0c5Q6iTxMUkIUIv/zFq73xlt/kZAwODNAdjoyz7bHUuuAYl
-GTkGBgYWBgYGVmYmZJO+/f/PwMAwyUmcgYHhz///aTe//mdgZGBg+AcNDAaGh8+eMihIoDng9KPPk6983vLx939YwLx/9RzqpH83T2DG6MP3v1Z+/PuVAWH5
-3zunoRquLew0/PKMAS8w/fHq4qwmRDy8WtMr8+szLtUiPz8/Wt71//9/hIb7u1b/Xdqgj80e8x+vWJY1Pt6NmjQYGBg+3rv2bPMcYxFedob/7rJcd1+8v3bl
-mtTFbafqYz7evYrTrczMzMzMzJC0zcLCwsLCgpJUGRkBSgGWGpO9IcIAAAAASUVORK5CYII=
-""")
+RACHIO_ICON = RACHIO_ICON_ASSET.readall()
 
-RACHIO_BLUE = "#06a6e2"
-ORANGE = "#e27306"
-WHITE = "#fff"
+RACHIO_BLUE = "#0070D2"
+RACHIO_SECONDARY_COLOR = "#00A676"
 
 ACCURACY_IN_MINUTES = 3  #We'll round to the nearest 3 minutes when calling Rachio API
 LONG_TTL_SECONDS = 7200
@@ -68,14 +30,27 @@ WEATHER_SKIP = "WEATHER_INTELLIGENCE_SKIP"
 ZONE_STARTED = "ZONE_STARTED"
 
 def main(config):
-    tz = config.get("$tz", "America/New_York")
+    tz = time.tz()
     now = time.now().in_location(tz)
     api_key = config.str("api_key", "")
-    delay = int(config.get("scroll", 45))
     skip_when_empty = config.bool("skipwhenempty", False)
+    screen_width = canvas.width()
+    icon_width = 16
+
+    delay = int(config.get("scroll", 45))
+    font = "5x8"
+    font_height = 8
+    font_width = 5
+
+    #Mods for 2x Display
+    if (canvas.is2x()):
+        delay = int(delay / 2)
+        font = "terminus-16"
+        font_height = 16
+        font_width = 8
 
     if (api_key.strip() == ""):
-        return display_error_screen(now, "Please enter your API Key", "It can be found in the Rachio App", delay)
+        return display_error_screen(now, "Please enter your API Key", "It can be found in the Rachio App", delay, screen_width, font_height, font)
 
     devices = get_devices(api_key)
     selected_device = config.str("device")
@@ -83,7 +58,7 @@ def main(config):
     if (devices == None or selected_device == None or selected_device == ""):
         if devices == None:
             # No device selected, and no device available from the list, send an error
-            return display_error_screen(now, "No devices found.", "Make sure you have entered the correct API key and selected your display device", delay)
+            return display_error_screen(now, "No devices found.", "Make sure you have entered the correct API key and selected your display device", delay, screen_width, font_height, font, font_width, icon_width)
         else:
             selected_device = devices[0]["id"]
 
@@ -94,7 +69,8 @@ def main(config):
     # If we use the time to the millisecond, nothing will ever be cached and we'll hit our limit of rachio requests in a day
     # So we'll round off to the nearest X minutes (They provide enough calls to give you 1 per minutes.)
     # But in addition, let's go a few minutes into the future, no point in every making a call that could miss the most recent event.
-    now = time.now() + time.parse_duration("%sm" % str(ACCURACY_IN_MINUTES))
+    now = time.now() + time.parse_duration("{}m".format(str(ACCURACY_IN_MINUTES)))
+
     rounded_time = time.time(year = now.year, month = now.month, day = now.day, hour = now.hour, minute = round_to_nearest_X(now.minute, ACCURACY_IN_MINUTES), second = 0, location = tz)
 
     # The data they send is a little odd in that the there isn't a time stamp, but a time display.
@@ -111,7 +87,7 @@ def main(config):
     recent_events = get_selected_events(tz, all_events, False)
     current_events = get_selected_events(tz, all_events, True)
 
-    return render_rachio(tz, config, get_device_name(devices, selected_device), recent_events, current_events, now, delay, skip_when_empty)
+    return render_rachio(tz, config, get_device_name(devices, selected_device), recent_events, current_events, now, delay, skip_when_empty, screen_width, icon_width, font_height, font_width, font)
 
 def get_device_name(devices, selected_device):
     for device in devices:
@@ -131,7 +107,7 @@ def add_padding_to_child_element(element, left = 0, top = 0, right = 0, bottom =
 
     return padded_element
 
-def display_error_screen(time, line_3, line_4 = "", delay = 45):
+def display_error_screen(time, line_3, line_4 = "", delay = 45, screen_width = 64, font_height = 8, font = "5x8", font_width = 5):
     return render.Root(
         render.Column(
             children = [
@@ -143,20 +119,20 @@ def display_error_screen(time, line_3, line_4 = "", delay = 45):
                         render.Box(width = 1, height = 1, color = "#000"),
                         render.Stack(
                             children = [
-                                render.Text(time.format("Jan 02"), color = RACHIO_BLUE),
-                                add_padding_to_child_element(render.Text(time.format("3:04 PM"), color = RACHIO_BLUE), 0, 8),
+                                render.Text(time.format("Jan 02"), font = font, color = RACHIO_BLUE),
+                                add_padding_to_child_element(render.Text(time.format("3:04 PM"), font = font, color = RACHIO_BLUE), 0, font_height),
                             ],
                         ),
                     ],
                 ),
                 render.Marquee(
-                    width = 64,
-                    child = render.Text(line_3, color = ORANGE),
+                    width = screen_width,
+                    child = render.Text(line_3, color = RACHIO_SECONDARY_COLOR, font = font),
                 ),
                 render.Marquee(
-                    offset_start = len(line_3) * 5,
-                    width = 64,
-                    child = render.Text(line_4, color = ORANGE),
+                    offset_start = len(line_3) * font_width,
+                    width = screen_width,
+                    child = render.Text(line_4, color = RACHIO_SECONDARY_COLOR, font = font),
                 ),
             ],
         ),
@@ -164,7 +140,7 @@ def display_error_screen(time, line_3, line_4 = "", delay = 45):
         delay = delay,
     )
 
-def render_rachio(tz, config, device_name, recent_events, current_events, now, delay, skip_when_empty = True):
+def render_rachio(tz, config, device_name, recent_events, current_events, now, delay, skip_when_empty = True, screen_width = 64, icon_width = 16, font_height = 8, font_width = 5, font = "5x8"):
     show_device_name = config.bool("title_display", True)
 
     line_1 = "Rachio"
@@ -181,7 +157,7 @@ def render_rachio(tz, config, device_name, recent_events, current_events, now, d
         if skip_when_empty:
             return []
         else:
-            return display_error_screen(now, "No Events within a week.", "", delay)
+            return display_error_screen(now, "No Events within a week.", "", delay, screen_width, font_height, font, font_width, icon_width)
 
     # whew, made it with at least one event to display
 
@@ -225,20 +201,20 @@ def render_rachio(tz, config, device_name, recent_events, current_events, now, d
                         render.Box(width = 1, height = 1, color = "#000"),
                         render.Stack(
                             children = [
-                                render.Marquee(width = 48, child = render.Text(line_1, color = RACHIO_BLUE)),
-                                add_padding_to_child_element(render.Marquee(offset_start = len(line_1) * 5, width = 48, child = render.Text(line_2, color = RACHIO_BLUE)), 0, 8),
+                                render.Marquee(width = screen_width - icon_width, child = render.Text(line_1, font = font, color = RACHIO_BLUE)),
+                                add_padding_to_child_element(render.Marquee(offset_start = len(line_1) * font_width, width = screen_width, child = render.Text(line_2, color = RACHIO_BLUE, font = font)), 0, font_height),
                             ],
                         ),
                     ],
                 ),
                 render.Marquee(
-                    width = 64,
-                    child = render.Text(line_3, color = ORANGE),
+                    width = screen_width,
+                    child = render.Text(line_3, color = RACHIO_SECONDARY_COLOR, font = font),
                 ),
                 render.Marquee(
-                    offset_start = len(line_3) * 5,
-                    width = 64,
-                    child = render.Text(line_4, color = ORANGE),
+                    offset_start = len(line_3) * font_width,
+                    width = screen_width,
+                    child = render.Text(line_4, color = RACHIO_SECONDARY_COLOR, font = font),
                 ),
             ],
         ),
@@ -380,6 +356,7 @@ def get_schema():
                 name = "Rachio API Key",
                 desc = "From the phone app or rachio.com you can acquire your API key. From the web app select Account Settings and GET API KEY",
                 icon = "key",
+                secret = True,
             ),
             schema.Toggle(
                 id = "title_display",

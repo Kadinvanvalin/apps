@@ -15,7 +15,7 @@ load("render.star", "render")
 load("schema.star", "schema")
 load("time.star", "time")
 
-DELTA = .1
+DELTA = 0.1
 STATIC_GTFS_FILE = "static_gtfs"
 
 CORE_BACKGROUND_COLOR = "#4D5357"
@@ -183,7 +183,6 @@ def get_gtfs():
         resText = http.get("http://web.mta.info/developers/data/lirr/google_transit.zip").body()
         res = parse_gtfs(resText)
 
-        # TODO: Determine if this cache call can be converted to the new HTTP cache.
         cache.set(STATIC_GTFS_FILE, json.encode(res), ttl_seconds = 3600)
         return res
     else:

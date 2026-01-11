@@ -322,16 +322,16 @@ def main(config):
 def get_stale_warning_color(seconds, max_seconds):
     percentage = seconds / max_seconds
     color = WHITE_COLOR
-    if (percentage < .33):
+    if (percentage < 0.33):
         color = GREEN_COLOR
-    elif (percentage < .66):
+    elif (percentage < 0.66):
         color = YELLOW_COLOR
     else:
         color = RED_COLOR
     return color
 
 def initialize_extremes(lat, lng):
-    buffer = .1
+    buffer = 0.1
     extremes = [-90, 90, 180, -180]
     lat = float(lat)
     lng = float(lng)
@@ -649,6 +649,7 @@ def get_schema():
                 name = "RapidAPI FlightRadar Key",
                 desc = "FlightRadar API key",
                 icon = "key",
+                secret = True,
             ),
             schema.Location(
                 id = "location",

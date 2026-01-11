@@ -4,4 +4,6 @@ name: Minecraft Realms
 summary: Minecraft Realms Status
 desc: Displays information about a Minecraft Realms server you play on.
 author: Michael Maxwell
-recommended_interval: 5
+recommendedInterval: 5
+fileName: minecraft_realms.star
+packageName: minecraftrealms

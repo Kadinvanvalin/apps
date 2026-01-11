@@ -6,4 +6,6 @@ desc: Showcase your daily, weekly, monthly, or annual order totals.
 author: Shopify
 fileName: order_trends.star
 packageName: ordertrends
-recommended_interval: 5
+recommendedInterval: 5
+broken: true
+brokenReason: "www.shopcounter.app: no such host"

@@ -5,11 +5,9 @@ Description: Tracking your visits across the USA
 Author: Robert Ison
 """
 
-load("render.star", "render")
+load("render.star", "canvas", "render")
 load("schema.star", "schema")
 
-SCREEN_WIDTH = 64
-SCREEN_HEIGHT = 32
 DEFAULT_COLORS = ["#009A17", "#708090", "#FFD700"]  #map, unvisted, visited
 
 # USA JSON structure
@@ -1981,7 +1979,7 @@ def get_bounds(coordinates):
 
     return {"min_x": min_x, "max_x": max_x, "min_y": min_y, "max_y": max_y}
 
-def normalize_coordinates(coords, bounds, grid_width = SCREEN_WIDTH, grid_height = SCREEN_HEIGHT):
+def normalize_coordinates(coords, bounds, grid_width, grid_height):
     # Extract all coordinate pairs from the nested structure
     raw_coords = []
     for point in coords:
@@ -2010,7 +2008,7 @@ def normalize_coordinates(coords, bounds, grid_width = SCREEN_WIDTH, grid_height
 
     return grid_points  # Return as a list with duplicates allowed
 
-def get_plot(grid_points, color = "#ff0", width = SCREEN_WIDTH, height = SCREEN_HEIGHT):
+def get_plot(grid_points, width, height, color = "#ff0"):
     return render.Plot(
         data = grid_points,
         width = width,
@@ -2020,15 +2018,11 @@ def get_plot(grid_points, color = "#ff0", width = SCREEN_WIDTH, height = SCREEN_
         y_lim = (0, height - 1),
     )
 
-def get_dot(color):
+def get_dot(color, size = 1):
     return render.Box(
-        width = 1,
-        height = 1,
-        child = render.Box(
-            width = 1,
-            height = 1,
-            color = color,
-        ),
+        width = size,
+        height = size,
+        color = color,
     )
 
 def add_padding_to_child_element(element, left = 0, top = 0, right = 0, bottom = 0):
@@ -2081,9 +2075,18 @@ def main(config):
     items_to_plot = []  #As we progress through the list of items for our display, we keep adding to stacked_items
     gridpoints = []
 
+    width, height = canvas.width(), canvas.height()
+    is2x = canvas.is2x()
+    font = "terminus-14" if is2x else "CG-pixel-3x5-mono"
+    dot_size = 2 if is2x else 1
+
     # This map of USA includes Alaska and Hawaii
     # Offset for Mainland, Hawaii, Alaska - width of map, height of map, move right, move up
-    offsets = [[SCREEN_WIDTH - 3, SCREEN_HEIGHT - 2, 4, -2], [10, 10, 10, 0], [12, 12, 0, 0]]
+    offsets = [
+        [width - 3, height - 2, 4, -2],
+        [16, 16, 20, -2] if is2x else [10, 10, 10, 0],
+        [20, 20, 2, -2] if is2x else [12, 12, 0, 0],
+    ]
 
     # now that we figured out the bounds for each geographic area, we can
     # calculate the plot points
@@ -2091,15 +2094,20 @@ def main(config):
     for group in usa_map_data["coordinates"]:
         for subgroup in group:
             subgroup_counter = subgroup_counter + 1
+            offset_idx = -1
             if subgroup_counter in mainland_sections:
-                gridpoints = normalize_coordinates(subgroup, mainland_bounds, offsets[0][0], offsets[0][1])
-                items_to_plot.append(add_padding_to_child_element(get_plot(gridpoints, map_color), offsets[0][2], offsets[0][3]))
+                offset_idx = 0
             elif subgroup_counter in hawaii_sections:
-                gridpoints = normalize_coordinates(subgroup, hawaii_bounds, offsets[1][0], offsets[1][1])
-                items_to_plot.append(add_padding_to_child_element(get_plot(gridpoints, map_color), offsets[1][2], offsets[1][3]))
+                offset_idx = 1
             elif subgroup_counter in alaska_sections:
-                gridpoints = normalize_coordinates(subgroup, alaska_bounds, offsets[2][0], offsets[2][1])
-                items_to_plot.append(add_padding_to_child_element(get_plot(gridpoints, map_color), offsets[2][2], offsets[2][3]))
+                offset_idx = 2
+            if offset_idx != -1:
+                bounds = maps[offset_idx]
+                offset_vals = offsets[offset_idx]
+                gridpoints = normalize_coordinates(subgroup, bounds, offset_vals[0], offset_vals[1])
+                plot = get_plot(gridpoints, width, height, map_color)
+                padded_plot = add_padding_to_child_element(plot, offset_vals[2], offset_vals[3])
+                items_to_plot.append(padded_plot)
 
             # Animation Frames start with each group of outlines for USA areas
             animation_frames.append(render.Stack(children = items_to_plot))
@@ -2113,15 +2121,16 @@ def main(config):
     preface = "PARK"
     config_item = "park"
 
-    if config.get("type") == "national_parks":
+    type = config.get("type", TRACKING_OPTIONS[0].value)
+    if type == "national_parks":
         usa_locations = usa_national_parks
         preface = "PARK"
         config_item = "park"
-    elif config.get("type") == "capitols":
+    elif type == "capitols":
         usa_locations = usa_capitols
         preface = "STATE"
         config_item = "location"
-    elif config.get("type") == "world_heritage_sites":
+    elif type == "world_heritage_sites":
         usa_locations = world_heritage_sites
         preface = "HERITAGE"
         config_item = "site"
@@ -2148,9 +2157,9 @@ def main(config):
                 # also, these points are moved around to fit on the 'inset' map they belong to
                 # these formulae account for those adjustments to get the items on the right spot on the right map
                 converted_x = point[0] + offsets[i][2]
-                converted_y = ((SCREEN_HEIGHT - offsets[i][1]) + offsets[i][1] - point[1] + offsets[i][3])
+                converted_y = height - point[1] + offsets[i][3]
 
-                items_to_plot.append(add_padding_to_child_element(get_dot(unvisited_color), converted_x, converted_y))
+                items_to_plot.append(add_padding_to_child_element(get_dot(unvisited_color, dot_size), converted_x, converted_y))
 
                 # Next set of frames is MAP + unvisited Items one at a time
                 animation_frames.append(render.Stack(children = items_to_plot))
@@ -2166,14 +2175,28 @@ def main(config):
                 # also, these points are moved around to fit on the 'inset' map they belong to
                 # these formulae account for those adjustments to get the items on the right spot on the right map
                 converted_x = point[0] + offsets[i][2]
-                converted_y = ((SCREEN_HEIGHT - offsets[i][1]) + offsets[i][1] - point[1] + offsets[i][3])
+                converted_y = height - point[1] + offsets[i][3]
                 total_visited = total_visited + 1
-                items_to_plot.append(add_padding_to_child_element(get_dot(visited_color), converted_x, converted_y))
+                items_to_plot.append(add_padding_to_child_element(get_dot(visited_color, dot_size), converted_x, converted_y))
 
                 if config.get("showCount") == "true":
-                    display_text = ("%s" % (total_visited))
-                    items_to_plot.append(add_padding_to_child_element(render.Box(color = "#000", width = 10, height = 5), SCREEN_WIDTH + 1 - (4 * len(display_text)), SCREEN_HEIGHT - 5))
-                    items_to_plot.append(add_padding_to_child_element(render.Text(display_text, font = "CG-pixel-3x5-mono", color = visited_color), SCREEN_WIDTH + 1 - (4 * len(display_text)), SCREEN_HEIGHT - 5))
+                    display_text = render.Text(
+                        content = str(total_visited),
+                        font = font,
+                        color = visited_color,
+                    )
+                    text_w, text_h = display_text.size()
+                    pad = 2 if is2x else 1
+                    items_to_plot.append(add_padding_to_child_element(
+                        render.Box(
+                            color = "#000",
+                            width = text_w,
+                            height = text_h,
+                            child = display_text,
+                        ),
+                        width - pad - text_w,
+                        height - pad - text_h,
+                    ))
 
                     # Frame 4 is map + unvisited + visited + Count
                     animation_frames.append(render.Stack(children = items_to_plot))

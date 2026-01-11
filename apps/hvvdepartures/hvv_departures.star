@@ -5,14 +5,33 @@ Description: Display real-time departure times for trains, buses and ferries in 
 Author: fxb (Felix Bruns)
 """
 
-load("cache.star", "cache")
-load("encoding/base64.star", "base64")
 load("encoding/json.star", "json")
 load("http.star", "http")
+load("images/image_akn.png", IMAGE_AKN_ASSET = "file")
+load("images/image_logo.png", IMAGE_LOGO_ASSET = "file")
+load("images/image_metro_bus.png", IMAGE_METRO_BUS_ASSET = "file")
+load("images/image_night_bus.png", IMAGE_NIGHT_BUS_ASSET = "file")
+load("images/image_s1.png", IMAGE_S1_ASSET = "file")
+load("images/image_s11.png", IMAGE_S11_ASSET = "file")
+load("images/image_s2.png", IMAGE_S2_ASSET = "file")
+load("images/image_s21.png", IMAGE_S21_ASSET = "file")
+load("images/image_s3_s31.png", IMAGE_S3_S31_ASSET = "file")
+load("images/image_xpress_bus.png", IMAGE_XPRESS_BUS_ASSET = "file")
 load("math.star", "math")
 load("render.star", "render")
 load("schema.star", "schema")
 load("time.star", "time")
+
+IMAGE_AKN = IMAGE_AKN_ASSET.readall()
+IMAGE_LOGO = IMAGE_LOGO_ASSET.readall()
+IMAGE_METRO_BUS = IMAGE_METRO_BUS_ASSET.readall()
+IMAGE_NIGHT_BUS = IMAGE_NIGHT_BUS_ASSET.readall()
+IMAGE_S1 = IMAGE_S1_ASSET.readall()
+IMAGE_S11 = IMAGE_S11_ASSET.readall()
+IMAGE_S2 = IMAGE_S2_ASSET.readall()
+IMAGE_S21 = IMAGE_S21_ASSET.readall()
+IMAGE_S3_S31 = IMAGE_S3_S31_ASSET.readall()
+IMAGE_XPRESS_BUS = IMAGE_XPRESS_BUS_ASSET.readall()
 
 # The API endpoints used to retrieve locations and departures.
 #
@@ -40,16 +59,6 @@ RFC3339_FORMAT = "2006-01-02T15:04:05Z07:00"
 DEFAULT_STATION_ID = "90"
 
 # Background images for known lines, as well as the HVV logo.
-IMAGE_LOGO = base64.decode("iVBORw0KGgoAAAANSUhEUgAAACAAAAAKCAYAAADVTVykAAABhUlEQVR4AbzTA4ycQRTA8VfbthvUtm3bilXHNYLathnVto2zbWsx97/LYrIKDi/5LR8G+USUPMFslBFL5DQdUh07sU+KPJT8RxB2oy9KMbghfBBVHAtoglVIRDJa6wtAfSzEXmxBJ1TGRCxGbdGC720xD8PR2ZLT1yGnMqZjkTBwPd4jFfdRW1tAJE4iA8riFwbhLhQW5TQZXFJrfgAGbMVEKDxFRS2nD5IRKgyMxRG0FEtoCzBjHzpbnIHCTQxBDP6jo1aXiQA0y248sATvX5CFMfk5TYaU4/NlJGKFMLimOIS2AAO7q+hwvAqfc5oOrs37NihsRTlshMIOrWYB4nHNMnw2YnCD3mXFIRwXECNaUFDDMuAbn6vx3hxp+ItZCMZntHe478uIwly8RgpGirtw9xQYmgypri/AknsRRoRBYR5KOvQbjkyEwozHnEb5wlpAD3hDIdDgcKyWnEp4AYV0TBNPQUIV7MBOhwXkNTqGTSygnJY/D0cw2EPPgZba3OUj5wgA0xFcXLHDZ2kAAAAASUVORK5CYII=")
-IMAGE_METRO_BUS = base64.decode("iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAYAAAA7KqwyAAAAd0lEQVR42qWMsQ2AMAwET2IPkp4paGlYgxnYkykgKLSIKPgLJDogvPSS/f4zlxZ8H/CHOT/4UJe7Zlxrh6jCS0cxSIG6sWDT4aM3sdgwKSj0hIY/JuDmUlgsK66zJRU8SGKRVvxgwf4B3sVwKUO14Ma3D9QVA3AC2DYHRN4mmqoAAAAASUVORK5CYII=")
-IMAGE_XPRESS_BUS = base64.decode("iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAYAAAA7KqwyAAAAaklEQVR4AZ3QsQ2AIBCFYRL3cAEWsLWlYQ1nYBEnYwobbAlG3yteLXeX/OX3igu69dwyGuj9aaAsJ7yjNoFVoxGO6DZgRRM5UB1Y1eDFigOXF9NyIKHHgWmSHnmgbsCdhlYDCyqGgUJD+wGOhfahrZQnuQAAAABJRU5ErkJggg==")
-IMAGE_NIGHT_BUS = base64.decode("iVBORw0KGgoAAAANSUhEUgAAABAAAAAJCAQAAACRI2S5AAAAXElEQVR42n3PoQ2AQAAEwU2+k7VUgcXQBjXQJ1VgwBLIIXDwT07OmgPE0dO8djoCIPZuH45xswfs3Ksc426HS5NjXPjlGFx/gxUHryZfDoiTR5UPp+dmca4GswVu/YOM52Hx5vcAAAAASUVORK5CYII=")
-IMAGE_S1 = base64.decode("iVBORw0KGgoAAAANSUhEUgAAAA4AAAAJCAYAAAACTR1pAAAAa0lEQVR4AWMAAfEpWuZSU7WeSk7Tei01Tfs/NgyVeyI5TcMYrklyqtZHkCQxGKRWcrK6CQPIJpAAifgJA5D4QKpGoGVvGEAMcjDZNpLvR1DwkhSq07Q+iU7SMgRHCSh4QaaAnIDPeSA1ME0Aow/ZmIBU42QAAAAASUVORK5CYII=")
-IMAGE_S11 = base64.decode("iVBORw0KGgoAAAANSUhEUgAAAA4AAAAJCAYAAAACTR1pAAAAcUlEQVR4AWMAAfEpWuaSU7VPS03T/o8Pg9RITtMwRtKktZ2BGNDAwCQ5TXuH5GR1EwaQKYQ1aLOhatY6yQByAgNpAKyH/hrBfgS5m2hdaQysYD+CghcUUhDNhDUBLdopOknLEMwHBS/IFELxCFID0wQAw2VH51lki9YAAAAASUVORK5CYII=")
-IMAGE_S2 = base64.decode("iVBORw0KGgoAAAANSUhEUgAAAA4AAAAJCAYAAAACTR1pAAAAWElEQVR4AWMAgS0iluZAfBqI/+PDUDXGyJq2M+AHMLVMQLwDiE1AnNNEaGBD03wSxPjPQBqA6KG/RmhIMZGgiRXmR2NoSDERqWknEBvCBExAphARjydhmgBamVICM40gzAAAAABJRU5ErkJggg==")
-IMAGE_S21 = base64.decode("iVBORw0KGgoAAAANSUhEUgAAAA4AAAAJCAYAAAACTR1pAAAAbUlEQVR42p1QQQqAQAj0CYF+JFpa99ct65PqVIfqA9Uc6hTRKgyIOo4OIQbWWDhNRXQ2Sccb0Cuso0nsHpKxbmj+AWaz9IGghEINoEzGujqICyHxwK3o/xH21rh6Ce25CS0hYC+24ISv8zBzk04OP+ukjEgl2AAAAABJRU5ErkJggg==")
-IMAGE_S3_S31 = base64.decode("iVBORw0KGgoAAAANSUhEUgAAAA4AAAAJCAYAAAACTR1pAAAAbElEQVR4AWMAgWCFbPMQhdynIYp5r4H4PzYMllPIexIgl2eM0KSY+xEiSRiD1AbL5pgwQG36TwoG2cwANOEDqRqDFXLfMIAY5GCybSTfj6DgJSVUgxXzPgXL5xqCowQUvCBTQE7A5zyQGpgmAHpv3XJOylpCAAAAAElFTkSuQmCC")
-IMAGE_AKN = base64.decode("iVBORw0KGgoAAAANSUhEUgAAAA4AAAAJCAYAAAACTR1pAAAAVElEQVR4AWMAgX8NkuZA/BSIPwDxfxz4NRA/AWJjZE0fIZKEMVStCQPUpv8k4icMMOeRiN8wgBjkYLJtpMiPxiSG6icgNoRFiQk0jt7gcx5IDUwTAGj6M5mAtFVfAAAAAElFTkSuQmCC")
 
 # Configuration for backgrounds and colors for all known lines.
 LINE_CONFIG = {
@@ -343,25 +352,15 @@ def fetch_departures(station_id, extra_params = {}, duration_minutes = 1440, max
     # Add additional request parameters.
     params.update(extra_params)
 
-    # Construct a unique cache key.
-    cache_key = base64.encode(url + json.encode(params))
-    cache_data = cache.get(cache_key)
+    response = http.get(url = url, params = params, ttl_seconds = CACHE_TTL_SECONDS)
 
-    if cache_data != None:
-        return json.decode(cache_data)
-    else:
-        response = http.get(url = url, params = params)
+    if response.status_code != 200:
+        print("API request failed with status %d" % response.status_code)
+        return None
 
-        if response.status_code != 200:
-            print("API request failed with status %d" % response.status_code)
-            return None
+    data = response.json()
 
-        data = response.json()
-
-        # TODO: Determine if this cache call can be converted to the new HTTP cache.
-        cache.set(cache_key, json.encode(data), ttl_seconds = CACHE_TTL_SECONDS)
-
-        return data
+    return data
 
 def get_config_option_value(config, key, default = None):
     """Get the value of a 'schema.Option' from the applet configuration.

@@ -9,14 +9,13 @@ load("encoding/json.star", "json")
 load("http.star", "http")
 load("render.star", "render")
 load("schema.star", "schema")
-load("secret.star", "secret")
 load("time.star", "time")
 
 CHECKIDAY_API_URL = "https://api.checkiday.com/tidbyt"
 DEFAULT_TIMEZONE = "America/Chicago"
 
 # from `pixlet encrypt checkiday keyname`
-ENCRYPTED_API_KEY = "AV6+xWcE7vUHwx7qLifXHUI2DXOMaxbhi2MfvmX3ncE9iKFUnMf7u+wSBa54WvraCPkV4H38FTLxMVHFkWtX/jrf9tfo62NgCQux3T+MnV3CEDaENGLvjCSs2IzUPl0Z4EvEnWJ32UvmJaH70GDj0O5r1drwK1vpJ0XEm4/X5Ue5uQ=="
+
 DEFAULT_COLORS = ["#777", "#FFF"]
 CUSTOM_COLORS_BY_DATE = {
     (1, 1): ["#C0C0C0", "#D4AF37"],  # New Year's Day
@@ -80,6 +79,13 @@ def get_schema():
     return schema.Schema(
         version = "1",
         fields = [
+            schema.Text(
+                id = "api_key",
+                name = "Checkiday API Key",
+                desc = "Your Checkiday API Key.",
+                icon = "key",
+                secret = True,
+            ),
             schema.Toggle(
                 id = "adult",
                 name = "NSFW Mode",
@@ -99,17 +105,17 @@ def get_schema():
 def get_timezone(config):
     location = config.get("location")
     loc = json.decode(location) if location else {}
-    return loc.get("timezone", config.get("$tz", DEFAULT_TIMEZONE))
+    return loc.get("timezone", time.tz())
 
 def get_events(config):
     timezone = get_timezone(config)
     adult = config.get("adult", "false")
-    api_key = secret.decrypt(ENCRYPTED_API_KEY) or config.get("dev_api_key", "")
+    api_key = config.get("api_key", "")
     url = CHECKIDAY_API_URL + "?apikey=" + api_key + "&adult=" + adult + "&timezone=" + timezone
     now = time.now().in_location(timezone)
     end_of_day = time.time(year = now.year, month = now.month, day = now.day, hour = 23, minute = 59, second = 59, location = timezone)
     time_left_in_day = end_of_day - now
-    rep = http.get(url, ttl_seconds = min(3600, time_left_in_day.seconds))  # cache until midnight or an hour, whichever is first
+    rep = http.get(url, ttl_seconds = int(min(3600, time_left_in_day.seconds)))  # cache until midnight or an hour, whichever is first
     if rep.status_code != 200:
         return [{"name": "Error loading holidays...", "id": ""}]
 

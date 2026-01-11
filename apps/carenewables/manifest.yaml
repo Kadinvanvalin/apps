@@ -6,4 +6,6 @@ desc: See how California is using renewable energy in its power grid right now.
 author: sloanesturz
 fileName: ca_renewables.star
 packageName: carenewables
-recommended_interval: 5
+recommendedInterval: 5
+broken: true
+brokenReason: "API endpoint is no longer available"

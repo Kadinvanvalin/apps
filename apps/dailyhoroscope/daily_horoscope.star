@@ -7,10 +7,30 @@ Author: frame-shift
 Version 1.1.1
 """
 
-load("encoding/base64.star", "base64")
+load("encoding/json.star", "json")
 load("html.star", "html")
 load("http.star", "http")
 load("humanize.star", "humanize")
+load("images/aquarius.webp", AQUARIUS_ICON_ASSET = "file")
+load("images/aries.webp", ARIES_ICON_ASSET = "file")
+load("images/cancer.webp", CANCER_ICON_ASSET = "file")
+load("images/capricorn.webp", CAPRICORN_ICON_ASSET = "file")
+load("images/first_quarter.webp", FIRST_QUARTER_ICON_ASSET = "file")
+load("images/full_moon.webp", FULL_MOON_ICON_ASSET = "file")
+load("images/gemini.webp", GEMINI_ICON_ASSET = "file")
+load("images/last_quarter.webp", LAST_QUARTER_ICON_ASSET = "file")
+load("images/leo.webp", LEO_ICON_ASSET = "file")
+load("images/libra.webp", LIBRA_ICON_ASSET = "file")
+load("images/new_moon.webp", NEW_MOON_ICON_ASSET = "file")
+load("images/pisces.webp", PISCES_ICON_ASSET = "file")
+load("images/sagittarius.webp", SAGITTARIUS_ICON_ASSET = "file")
+load("images/scorpio.webp", SCORPIO_ICON_ASSET = "file")
+load("images/taurus.webp", TAURUS_ICON_ASSET = "file")
+load("images/virgo.webp", VIRGO_ICON_ASSET = "file")
+load("images/waning_crescent.webp", WANING_CRESCENT_ICON_ASSET = "file")
+load("images/waning_gibbous.webp", WANING_GIBBOUS_ICON_ASSET = "file")
+load("images/waxing_crescent.webp", WAXING_CRESCENT_ICON_ASSET = "file")
+load("images/waxing_gibbous.webp", WAXING_GIBBOUS_ICON_ASSET = "file")
 load("re.star", "re")
 load("render.star", "render")
 load("schema.star", "schema")
@@ -26,30 +46,30 @@ TTL = 3600  # One hour
 
 # 12x12 zodiac icons w/ transparent bg
 SIGN_ICONS = {
-    "aries": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAARElEQVQoU2NkIBEwwtT/BwIQmxEIkM1AFwdLggRhCgmx4RpgpmPTgGwLivX4bIM5E0MDTBM2/4DFsAUSrgAY1hrwpRYAdWVIDdrAt+QAAAAASUVORK5CYII=",
-    "aquarius": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAANklEQVQoU2NkIBEwkqieAUXDfyBgBAKQIbjYcA0gBSCFIA242GB5ZNPwaYLZPOoHYiKR5FACAHUYUA0cDsEbAAAAAElFTkSuQmCC",
-    "cancer": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAU0lEQVQoU5VR7RIAIATL+z900Z1uPir2KzI2aDRBzfoRCJOBTYhhYg20EAuQrPnNlg9N4DuT+yX4yUffTZKf/NxSJjVMEN2ZcWMazZXXWj1g+9ILA7BADV+u9iMAAAAASUVORK5CYII=",
-    "capricorn": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAATUlEQVQoU2NkIBEwkqieAa7hPxAwAgGIBhkCYmMzDEUQpgmkEJmNrJH6GtBtwmsDzC/ImvCGEnJAwAIBpwZsisE2ogcdScFKTCSSHNMA4qpEDezp/38AAAAASUVORK5CYII=",
-    "gemini": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAPklEQVQoU2NkIBEwkqieAa7hPxCANDMCAbIh6OJYJdFtRTYEw0kgE2EKkNkwQwa7BliIEOVpsoKVmEgkOaYB0zo4DbAkvRkAAAAASUVORK5CYII=",
-    "leo": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAUElEQVQoU5VRMRIAIAjS/z+6dKAzw0qmNEE8VJrQ5rxQwjBEITWgPggYxlCuN0L+hKr3IbAIsVm9XeBKYBuvluKm8mjmm97A8nha+gmxnfQEc/FADaGM59cAAAAASUVORK5CYII=",
-    "libra": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAASUlEQVQoU2NkIBEwkqieAauG/0AAMogRCNANxBAAKYYpRGbDNKJowKYAXYwyDSBriXYSzKPInsUmRn6wIpuGLW5gIUe+DcTGOABnLzANbvqV9AAAAABJRU5ErkJggg==",
-    "pisces": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAQUlEQVQoU2NkIBEwkqieAa7hPxAwAgE2A5DlUBRg04QuhmEisgJsBlCmAWQiNj8g+40yG0Cmk+QHkkKJrHggJtYB0gNEDZe22L0AAAAASUVORK5CYII=",
-    "sagittarius": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAT0lEQVQoU5VRSRIAIAjS/z+69MCMueTALQVJUSGhJF9awTHkQWrw2uoAcSvwJho+De9YLw4d6SuIk7EH7RAP8Hxp2qEVZPKUz3rWkgeb9AVR9jwNrX+F2QAAAABJRU5ErkJggg==",
-    "scorpio": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAQUlEQVQoU2NkIBEwkqieAazhPxCAaEYgQGZjMwyuAaYYmR6kGmB+gvmRKD8gBwRBDSDFyAGBMx5wBS95EUdKbAMAl/hkDTgw85gAAAAASUVORK5CYII=",
-    "taurus": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAATElEQVQoU2NkIBEwkqieAa7hPxCANDMCAbIh6OIYNoAUwDQhs2GGYHUSLtvALkD3A0k2YHMCuhiGB7F5GlmMMifB/EOSpwlFJMkxDQAL+DgNjubENAAAAABJRU5ErkJggg==",
-    "virgo": "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAUklEQVQoU2NkIBEwkqieAa7hPxCANDMCATIb3UAUDTDF2GiYRrwakG0EGQLmw3SCnIHLZJgcbTQgm47XBpAkumIUDejBh+wnmOfxasAVoSTHNADArGwNgN6yOQAAAABJRU5ErkJggg==",
+    "aries": ARIES_ICON_ASSET.readall(),
+    "aquarius": AQUARIUS_ICON_ASSET.readall(),
+    "cancer": CANCER_ICON_ASSET.readall(),
+    "capricorn": CAPRICORN_ICON_ASSET.readall(),
+    "gemini": GEMINI_ICON_ASSET.readall(),
+    "leo": LEO_ICON_ASSET.readall(),
+    "libra": LIBRA_ICON_ASSET.readall(),
+    "pisces": PISCES_ICON_ASSET.readall(),
+    "sagittarius": SAGITTARIUS_ICON_ASSET.readall(),
+    "scorpio": SCORPIO_ICON_ASSET.readall(),
+    "taurus": TAURUS_ICON_ASSET.readall(),
+    "virgo": VIRGO_ICON_ASSET.readall(),
 }
 
 # 6x6 moon phase icons
 MPHASE_ICONS = {
-    "NM": "iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAIElEQVQIW2NkAIJ8wxn/QTQMTDyfwciILgiTpKYELssBPqwQ46zV5PYAAAAASUVORK5CYII=",
-    "XC": "iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAALklEQVQIW2NkAIJ8wxn/QfSEgxkgioGRj4GRESYIFkGWRJeASWLowCkBtweX5QAsGBfHpOY22AAAAABJRU5ErkJggg==",
-    "FQ": "iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAJklEQVQIW2NkAIJ8wxn/QfSEgxkgioGRj4GRESaILAGWpKIELssBVXAXx4NDGHMAAAAASUVORK5CYII=",
-    "XG": "iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAJklEQVQIW2NkAIJ8wxn/QfSEgxkgioGRj4GREV0QLAOSpKIELssBcQAXx6owFL0AAAAASUVORK5CYII=",
-    "FM": "iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAIElEQVQIW2NkAIL/nxj+g2gYYORjYGREF4RLUlECl+UA0JIRx3Bh73gAAAAASUVORK5CYII=",
-    "NG": "iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAJ0lEQVQIW2NkAIL/nxj+g+gC+xkgimHi+QxGRpggWARJkpoSuCwHANCpHOPSB3toAAAAAElFTkSuQmCC",
-    "LQ": "iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAJ0lEQVQIW2NkAIL/nxj+g+gC+xkgimHi+QxGRpggsgSITU0JXJYDAOUZHOPRxY5GAAAAAElFTkSuQmCC",
-    "NC": "iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAAMElEQVQIW2NkAIL/nxj+g+gC+xkgimHi+QxGRnRBsAwQgCVgKmGChCWQzYcbhctyAAPQHOMk6boBAAAAAElFTkSuQmCC",
+    "NM": NEW_MOON_ICON_ASSET.readall(),
+    "XC": WAXING_CRESCENT_ICON_ASSET.readall(),
+    "FQ": FIRST_QUARTER_ICON_ASSET.readall(),
+    "XG": WAXING_GIBBOUS_ICON_ASSET.readall(),
+    "FM": FULL_MOON_ICON_ASSET.readall(),
+    "NG": WANING_GIBBOUS_ICON_ASSET.readall(),
+    "LQ": LAST_QUARTER_ICON_ASSET.readall(),
+    "NC": WANING_CRESCENT_ICON_ASSET.readall(),
 }
 
 # Moon phases
@@ -114,16 +134,18 @@ def main(config):
     sign_color = config.str("color_choice", DEFAULT_COLOR)
 
     # Fetch horoscope data
-    horoscope_url = "https://www.usatoday.com/horoscopes/daily/" + zodiac  # Updates daily at 09:00 UTC
+    horoscope_url = "https://play.usatoday.com/horoscopes/daily/" + zodiac  # Updates daily at 09:00 UTC
     scope_response = http.get(horoscope_url, ttl_seconds = TTL)
 
     if scope_response.status_code != 200:
         return render_error("Could not reach source")
 
     scope_html = html(scope_response.body())
+    json_extract = scope_html.find("script").filter("#__NEXT_DATA__").text()
+    scope_json = json.decode(json_extract)
 
     # Parse date that horoscope was written
-    date_extracted = scope_html.find("time").attr("datetime")
+    date_extracted = scope_json.get("props", {}).get("pageProps", {}).get("dehydratedState", {}).get("queries", [{}])[0].get("state", {}).get("data", {}).get("horoscopesDaily", {}).get("horoscopes", [{}])[0].get("date")
 
     if date_extracted == None:
         return render_error("Could not get date")
@@ -133,7 +155,8 @@ def main(config):
     date_d = humanize.time_format("d", date_parsed)
 
     # Parse horoscope
-    horoscope_parsed = scope_html.find("p").eq(1).text()
+    horoscope_extracted = scope_json.get("props", {}).get("pageProps", {}).get("dehydratedState", {}).get("queries", [{}])[0].get("state", {}).get("data", {}).get("horoscopesDaily", {}).get("horoscopes", [{}])[0].get("horoscope")
+    horoscope_parsed = re.sub(".*\n", "", horoscope_extracted or "")
 
     if horoscope_parsed == "":
         return render_error("Could not get horoscope")
@@ -143,7 +166,7 @@ def main(config):
     # Render moon data
     if show_moon:
         moon_phase, moon_sign = get_moon_info(date_parsed)
-        moon_icon = base64.decode(MPHASE_ICONS[moon_phase])
+        moon_icon = MPHASE_ICONS[moon_phase]
         m_width = 40
 
         moon_info = render.Column(
@@ -208,7 +231,7 @@ def main(config):
         )
 
     # Set the zodiac icon
-    sign_img = base64.decode(SIGN_ICONS[zodiac])
+    sign_img = SIGN_ICONS[zodiac]
     zodiac_icon = render.Padding(
         child = render.Stack(
             children = [

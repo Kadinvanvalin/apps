@@ -6,4 +6,5 @@ desc: Creating multiple app instances is no longer necessary. Just install once 
 author: LunchBox8484
 fileName: mhky_scores.star
 packageName: mhkyscores
-recommended_interval: 5
+recommendedInterval: 5
+broken: true

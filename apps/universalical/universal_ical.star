@@ -1,17 +1,19 @@
-load("encoding/base64.star", "base64")
 load("encoding/json.star", "json")
 load("http.star", "http")
 load("humanize.star", "humanize")
+load("images/calendar_icon.png", CALENDAR_ICON_ASSET = "file")
 load("render.star", "render")
 load("schema.star", "schema")
 load("time.star", "time")
+
+CALENDAR_ICON = CALENDAR_ICON_ASSET.readall()
 
 def main(config):
     location = config.str(P_LOCATION)
     location = json.decode(location) if location else {}
     timezone = location.get(
         "timezone",
-        config.get("$tz", DEFAULT_TIMEZONE),
+        time.tz(),
     )
 
     show_expanded_time_window = config.bool("show_expanded_time_window", DEFAULT_SHOW_EXPANDED_TIME_WINDOW)
@@ -43,7 +45,7 @@ def main(config):
     )
 
     if (ics.status_code != 200):
-        fail("Failed to fetch ICS file")
+        return render.Root(child = render.WrappedText("Failed to fetch ICS file", color = "#ff0000"))
 
     event = ics.json()["data"]
 
@@ -413,13 +415,11 @@ DEFAULT_SHOW_EXPANDED_TIME_WINDOW = True
 DEFAULT_TRUNCATE_EVENT_SUMMARY = True
 DEFAULT_SHOW_FULL_NAMES = False
 DEFAULT_SHOW_IN_PROGRESS = True
-DEFAULT_TIMEZONE = "America/New_York"
 FRAME_DELAY = 100
 LAMBDA_URL = "https://6bfnhr9vy7.execute-api.us-east-1.amazonaws.com/ics-next-event"
 
 #this is the original AWS Lambda URL that is hosting the helper function
 #LAMBDA_URL = "https://xmd10xd284.execute-api.us-east-1.amazonaws.com/ics-next-event"
-CALENDAR_ICON = base64.decode("iVBORw0KGgoAAAANSUhEUgAAAAkAAAALCAYAAACtWacbAAAAAXNSR0IArs4c6QAAAE9JREFUKFNjZGBgYJgzZ87/lJQURlw0I0xRYEMHw/qGCgZ0GqSZ8a2Myv8aX1eGls27GXDRYEUg0/ABxv///xOn6OjRowzW1tYMuOghaxIAD/ltSOskB+YAAAAASUVORK5CYII=")
 
 #this is a weird calendar but its the only public ics that reliably has events every week
 DEFAULT_ICS_URL = "https://calendar.google.com/calendar/ical/ht3jlfaac5lfd6263ulfh4tql8%40group.calendar.google.com/public/basic.ics"

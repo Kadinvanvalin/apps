@@ -6,4 +6,6 @@ desc: Display current Mayo Clinic news headlines from their newsroom RSS feed.
 author: jvivona
 fileName: mayo_clinic_news.star
 packageName: mayoclinicnews
-recommended_interval: 10
+recommendedInterval: 10
+broken: true
+brokenReason: The source XML feed is invalid (malformed XML).

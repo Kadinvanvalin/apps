@@ -11,6 +11,7 @@ import os
 from datetime import datetime, timedelta
 from functools import wraps
 import time
+import pytz
 
 app = Flask(__name__)
 
@@ -24,8 +25,9 @@ cache_store = {
     "daily_timestamp": None,
 }
 
-# Hourly cache for summary (includes today's production)
-HOURLY_CACHE = 3600  # 1 hour
+# Cache for summary + today's consumption (120 minutes to stay under limit)
+# With 120-min cache: ~12 requests/day × 2 calls = 24/day + 2 midnight = 26/day = ~780/month ✅
+HOURLY_CACHE = 7200  # 120 minutes (2 hours)
 
 # Daily cache for lifetime data (doesn't change much)
 DAILY_CACHE = 86400  # 24 hours
@@ -104,37 +106,100 @@ def get_solar_data():
         year_start = datetime(now.year, 1, 1)
         week_start = today - timedelta(days=6)
         
-        # STEP 1: Get summary data (refreshed hourly) - 1 API call
+        # STEP 1: Get summary and today's consumption (refreshed hourly) - 2 API calls
         hourly_age = time.time() - cache_store["hourly_timestamp"] if cache_store["hourly_timestamp"] else float('inf')
         
         if hourly_age < HOURLY_CACHE and cache_store["hourly_data"]:
-            print(f"Using cached summary (age: {int(hourly_age)}s)")
+            print(f"Using cached summary + consumption (age: {int(hourly_age)}s)")
             summary = cache_store["hourly_data"]["summary"]
             day_prod = cache_store["hourly_data"]["day_prod"]
+            day_cons = cache_store["hourly_data"]["day_cons"]
+            timezone_str = summary.get("timezone", "America/New_York")
         else:
-            print("Fetching fresh summary data...")
+            print("Fetching fresh summary and today's consumption data...")
             summary = call_enphase_api(f"systems/{SYSTEM_ID}/summary")
             day_prod = summary.get("energy_today", 0)
             
+            # Get timezone first, before fetching consumption
+            timezone_str = summary.get("timezone", "America/New_York")
+            print(f"System timezone: {timezone_str}")
+            
+            # Get current time in system's timezone
+            try:
+                tz = pytz.timezone(timezone_str)
+                now_local = datetime.now(tz)
+                today_str = now_local.strftime("%Y-%m-%d")
+                print(f"Current time in {timezone_str}: {now_local.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+                print(f"Fetching consumption for date: {today_str}")
+            except Exception as e:
+                # Fallback to UTC if timezone not recognized
+                print(f"Could not parse timezone {timezone_str}: {e}, using UTC")
+                now_local = datetime.utcnow()
+                today_str = now_local.strftime("%Y-%m-%d")
+            
+            # Get today's consumption from telemetry endpoint
+            try:
+                cons_telemetry = call_enphase_api(
+                    f"systems/{SYSTEM_ID}/telemetry/consumption_meter",
+                    params={
+                        "granularity": "day",
+                        "start_date": today_str
+                    }
+                )
+                
+                # Sum up the consumption from intervals
+                day_cons = 0
+                if "intervals" in cons_telemetry and len(cons_telemetry["intervals"]) > 0:
+                    for interval in cons_telemetry["intervals"]:
+                        if "enwh" in interval and interval["enwh"]:
+                            day_cons += interval["enwh"]
+                    print(f"Got today's consumption from telemetry: {day_cons} Wh ({len(cons_telemetry['intervals'])} intervals)")
+                else:
+                    print("No consumption intervals in telemetry response")
+            except Exception as e:
+                print(f"Could not fetch today's consumption: {e}")
+                day_cons = 0
+            
             cache_store["hourly_data"] = {
                 "summary": summary,
-                "day_prod": day_prod
+                "day_prod": day_prod,
+                "day_cons": day_cons
             }
             cache_store["hourly_timestamp"] = time.time()
         
-        timezone = summary.get("timezone", "America/New_York")
+        # Get current time in system's timezone for date change detection
+        try:
+            tz = pytz.timezone(timezone_str)
+            now_local = datetime.now(tz)
+            current_date_local = now_local.date()
+        except Exception as e:
+            # Fallback to UTC if timezone not recognized
+            print(f"Could not parse timezone {timezone_str}: {e}, using UTC")
+            now_local = datetime.utcnow()
+            current_date_local = now_local.date()
         
-        # STEP 2: Get lifetime data (refreshed daily) - 2 API calls per day
+        # STEP 2: Get lifetime data (refreshed at midnight local time)
         daily_age = time.time() - cache_store["daily_timestamp"] if cache_store["daily_timestamp"] else float('inf')
         
-        if daily_age < DAILY_CACHE and cache_store["daily_data"]:
-            print(f"Using cached lifetime data (age: {int(daily_age/3600)}h)")
+        # Check if we crossed midnight in LOCAL timezone since last cache
+        if cache_store["daily_timestamp"]:
+            cache_time_local = datetime.fromtimestamp(cache_store["daily_timestamp"], tz) if 'tz' in locals() else datetime.utcfromtimestamp(cache_store["daily_timestamp"])
+            cache_date_local = cache_time_local.date()
+            crossed_midnight = cache_date_local != current_date_local
+        else:
+            crossed_midnight = True
+        
+        if daily_age < DAILY_CACHE and cache_store["daily_data"] and not crossed_midnight:
+            print(f"Using cached lifetime data (age: {int(daily_age/3600)}h, date: {cache_date_local})")
             prod_data = cache_store["daily_data"]["production"]
             cons_data = cache_store["daily_data"]["consumption"]
             start_date = cache_store["daily_data"]["prod_start_date"]
             cons_start_date = cache_store["daily_data"]["cons_start_date"]
         else:
-            print("Fetching fresh lifetime data...")
+            if crossed_midnight:
+                print(f"Date changed in {timezone_str} (was {cache_date_local if cache_store['daily_timestamp'] else 'never'}, now {current_date_local}), fetching fresh lifetime data...")
+            else:
+                print("Fetching fresh lifetime data...")
             prod_data_raw = call_enphase_api(f"systems/{SYSTEM_ID}/energy_lifetime")
             cons_data_raw = call_enphase_api(f"systems/{SYSTEM_ID}/consumption_lifetime")
             
@@ -165,14 +230,19 @@ def get_solar_data():
         lifetime_prod += day_prod
         
         # Calculate consumption periods
-        day_cons = 0
         month_cons = sum(v for i, v in enumerate(cons_data) if v and month_start <= (cons_start_date + timedelta(days=i)) < today)
         year_cons = sum(v for i, v in enumerate(cons_data) if v and year_start <= (cons_start_date + timedelta(days=i)) < today)
         week_cons = sum(v for i, v in enumerate(cons_data) if v and week_start <= (cons_start_date + timedelta(days=i)) < today)
         lifetime_cons = sum(v for v in cons_data if v)
         
+        # Add today's consumption to periods
+        month_cons += day_cons
+        year_cons += day_cons
+        week_cons += day_cons
+        lifetime_cons += day_cons
+        
         result = {
-            "timezone": timezone,
+            "timezone": timezone_str,
             "timestamp": now.isoformat(),
             "periods": {
                 "day": {"production_wh": day_prod, "consumption_wh": day_cons},

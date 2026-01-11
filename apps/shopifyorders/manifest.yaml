@@ -3,7 +3,9 @@ id: shopify-orders
 name: Shopify Select
 summary: Time period order tracker
 desc: View orders you've received during a specific time period like Black Friday, seasonal sales, holiday season, and more.
-author: Shopify
+author: Adam Kuenzi
 fileName: shopify_orders.star
 packageName: shopifyorders
-recommended_interval: 5
+recommendedInterval: 5
+broken: true
+brokenReason: The API domain www.shopcounter.app no longer exists (DNS lookup failure).

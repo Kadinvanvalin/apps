@@ -4,4 +4,7 @@ name: Congress Watch
 summary: Updates from U.S. Congress
 desc: Displays updates from U.S. Congress.
 author: Robert Ison
-recommended_interval: 5
+recommendedInterval: 5
+fileName: congress_watch.star
+packageName: congresswatch
+supports2x: true

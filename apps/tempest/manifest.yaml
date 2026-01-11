@@ -4,4 +4,5 @@ name: Tempest Weather
 summary: Tempest Weather Station
 desc: Overview of your Tempest Weather Station, including current temperature, wind chill, pressure, inches of rain, and wind.
 author: epifinygirl
-recommended_interval: 5
+recommendedInterval: 5
+supports2x: true

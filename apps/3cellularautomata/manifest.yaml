@@ -6,4 +6,5 @@ desc: Draws the evolution of one-dimensional, three-state cellular automata.
 author: dinosaursrarr
 fileName: 3cellularautomata.star
 packageName: 3cellularautomata
-recommended_interval: 5
+recommendedInterval: 5
+supports2x: true

@@ -1,4 +1,6 @@
 name: Build and Test
+permissions:
+  contents: read
 
 on:
   push:
@@ -11,7 +13,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -34,7 +36,7 @@ jobs:
           BASE_SHA: ${{ steps.lastsuccess.outputs.sha }}
           HEAD_SHA: ${{ github.sha }}
 
-      # - name: Check modified apps
-      #   run: ./.github/scripts/check-apps.sh
-      #   env:
-      #     TARGETS: "${{ steps.targets.outputs.targets }}"
+      - name: Check modified apps
+        run: ./.github/scripts/check-apps.sh
+        env:
+          TARGETS: "${{ steps.targets.outputs.targets }}"
