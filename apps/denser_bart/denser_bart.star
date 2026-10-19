@@ -5,8 +5,9 @@ Description: Like the official BART applet but shows up to 8 routes for a statio
 Author: scoobmx
 """
 
+load("encoding/json.star", "json")
 load("http.star", "http")
-load("render.star", "render")
+load("render.star", "canvas", "render")
 load("schema.star", "schema")
 
 PREDICTIONS_URL = "https://api.bart.gov/api/etd.aspx"
@@ -22,6 +23,9 @@ def main(config):
     abbr = config.get("abbr")
     if abbr == None:
         abbr = DEFAULT_ABBR
+    elif abbr.startswith("{"):
+        # schema.Typeahead returns a JSON string with value field
+        abbr = json.decode(abbr).get("value", abbr)
 
     viz = config.bool("long_abbr")
 
@@ -51,8 +55,8 @@ def main(config):
         return render.Root(
             delay = 250 if viz else 125,
             child = render.Box(
-                height = 32,
-                width = 64,
+                height = canvas.height(),
+                width = canvas.width(),
                 child = render.Column(
                     main_align = "space_between",
                     cross_align = "start",
@@ -111,8 +115,8 @@ def main(config):
         return render.Root(
             delay = 250 if viz else 125,
             child = render.Box(
-                height = 32,
-                width = 64,
+                height = canvas.height(),
+                width = canvas.width(),
                 child = render.Column(
                     main_align = "space_between",
                     cross_align = "start",
